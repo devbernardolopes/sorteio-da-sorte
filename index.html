@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  </head>
+  <body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-xl shadow-lg max-w-sm w-full text-center">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">Finalizar Pagamento</h2>
+      <p class="text-gray-600 mb-6">
+        Escaneie o QR Code abaixo para pagar via PIX.
+      </p>
+
+      <div id="qrcode" class="flex justify-center mb-6"></div>
+
+      <div class="bg-gray-50 p-3 rounded border border-dashed border-gray-300">
+        <p class="text-xs text-gray-500 uppercase font-bold mb-1">
+          Copia e Cola
+        </p>
+        <code id="pix-string" class="text-xs break-all text-blue-600"
+          >00020126580014br.gov.bcb.pix...</code
+        >
+      </div>
+
+      <button
+        onclick="copyPix()"
+        class="mt-4 w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition"
+      >
+        Copiar Código PIX
+      </button>
+    </div>
+
+    <script>
+      // For a real app, this string comes from your Payment API
+      const pixPayload =
+        "00020126580014br.gov.bcb.pix0114+551199999999952040000530398654041.005802BR5913BernardoLopes6008SAOPAULO62070503***6304E21D";
+
+      // Generate the QR Code
+      new QRCode(document.getElementById("qrcode"), {
+        text: pixPayload,
+        width: 200,
+        height: 200,
+      });
+
+      function copyPix() {
+        navigator.clipboard.writeText(pixPayload);
+        alert("Código copiado!");
+      }
+    </script>
+  </body>
+</html>
