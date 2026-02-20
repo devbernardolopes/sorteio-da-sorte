@@ -32,21 +32,45 @@
     </div>
 
     <script>
-      // For a real app, this string comes from your Payment API
-      const pixPayload =
-        "00020126580014br.gov.bcb.pix0114+551199999999952040000530398654041.005802BR5913BernardoLopes6008SAOPAULO62070503***6304E21D";
+      // Function to get the PIX code from your local server
+      async function loadPix() {
+        try {
+          // This tells the browser: "Look for the /api/generate-pix folder on the SAME domain I'm on"
+          const response = await fetch("/api/generate-pix");
+          const data = await response.json();
 
-      // Generate the QR Code
-      new QRCode(document.getElementById("qrcode"), {
-        text: pixPayload,
-        width: 200,
-        height: 200,
-      });
+          const pixPayload = data.copyAndPaste;
 
-      function copyPix() {
-        navigator.clipboard.writeText(pixPayload);
-        alert("Código copiado!");
+          // Display the string in the UI
+          document.getElementById("pix-string").innerText = pixPayload;
+
+          // Generate the QR Code
+          // Clear previous QR code if any
+          document.getElementById("qrcode").innerHTML = "";
+          new QRCode(document.getElementById("qrcode"), {
+            text: pixPayload,
+            width: 200,
+            height: 200,
+          });
+
+          // Store it globally so the copy button works
+          window.currentPixPayload = pixPayload;
+        } catch (error) {
+          console.error("Could not fetch PIX:", error);
+          document.getElementById("pix-string").innerText = "Error loading PIX";
+        }
       }
+
+      // Update your copy function to use the fetched string
+      function copyPix() {
+        if (window.currentPixPayload) {
+          navigator.clipboard.writeText(window.currentPixPayload);
+          alert("Código copiado!");
+        }
+      }
+
+      // Load it when the page opens
+      loadPix();
     </script>
   </body>
 </html>
