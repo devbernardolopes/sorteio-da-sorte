@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sorteio da Sorte | Rifas</title>
+    <title>Sorteio da Sorte | Minhas Rifas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -19,17 +19,17 @@
 
       <main class="grid" style="margin-top: 1rem">
         <section class="card">
-          <h1 class="page-title">Rifas abertas</h1>
-          <p class="muted">Escolha uma rifa para ver detalhes e comprar tickets via PIX.</p>
+          <h1 class="page-title">Rifas criadas por voce</h1>
+          <p class="muted">Lista de rifas ativas ou encerradas.</p>
         </section>
 
         <section class="card">
-          <div id="list-message" class="alert alert-error" hidden></div>
-          <div id="raffle-list" class="raffle-list"></div>
+          <div id="created-message" class="alert alert-error" hidden></div>
+          <div id="created-list" class="raffle-list"></div>
         </section>
       </main>
     </div>
 
-    <script type="module" src="/scripts/home.js"></script>
+    <script type="module" src="/scripts/my-raffles.js"></script>
   </body>
 </html>

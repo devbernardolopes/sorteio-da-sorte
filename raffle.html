@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sorteio da Sorte | Rifa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <div id="header-slot"></div>
+
+      <main class="grid" style="margin-top: 1rem">
+        <section class="card">
+          <div id="raffle-message" class="alert alert-error" hidden></div>
+          <h1 id="raffle-title" class="page-title">Carregando...</h1>
+          <p id="raffle-description" class="muted"></p>
+          <div class="grid grid-2" style="margin-top: 0.7rem">
+            <p><strong>Preco ticket:</strong> <span id="ticket-price">-</span></p>
+            <p><strong>Data do sorteio:</strong> <span id="draw-date">-</span></p>
+            <p><strong>Disponiveis:</strong> <span id="available-count">-</span></p>
+            <p><strong>Maximo por usuario:</strong> <span id="max-per-user">-</span></p>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2 class="text-xl font-semibold">Comprar tickets</h2>
+          <form id="reserve-form" class="grid" style="margin-top: 0.7rem">
+            <label>
+              Quantidade
+              <input class="input" name="quantity" type="number" min="1" required />
+            </label>
+            <button class="btn btn-primary" type="submit">Ir para checkout</button>
+          </form>
+          <p class="muted" style="margin-top: 0.7rem">
+            Ao continuar, os tickets ficam reservados por alguns minutos para finalizar o PIX.
+          </p>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="/scripts/raffle.js"></script>
+  </body>
+</html>

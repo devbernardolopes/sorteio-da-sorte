@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sorteio da Sorte | Checkout PIX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <div id="header-slot"></div>
+
+      <main class="grid" style="margin-top: 1rem">
+        <section class="card">
+          <h1 class="page-title">Checkout PIX</h1>
+          <div id="checkout-message" class="alert alert-error" hidden></div>
+          <div class="grid grid-2" style="margin-top: 0.7rem">
+            <p><strong>Rifa:</strong> <span id="raffle-title">-</span></p>
+            <p><strong>Qtd:</strong> <span id="quantity">-</span></p>
+            <p><strong>Total:</strong> <span id="total">-</span></p>
+            <p><strong>Reserva expira em:</strong> <span id="expires-at">-</span></p>
+            <p><strong>Numeros reservados:</strong> <span id="ticket-numbers">-</span></p>
+          </div>
+          <button id="generate-pix" class="btn btn-primary" style="margin-top: 0.7rem">
+            Gerar PIX
+          </button>
+        </section>
+
+        <section class="card">
+          <h2 class="text-xl font-semibold">Pagamento</h2>
+          <div id="qrcode" class="mt-3"></div>
+          <p class="muted" style="margin-top: 0.8rem">Copia e cola PIX:</p>
+          <div id="pix-code" class="code-box">Aguardando geracao...</div>
+          <button id="copy-btn" class="btn btn-warn" style="margin-top: 0.7rem" disabled>
+            Copiar codigo PIX
+          </button>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="/scripts/checkout.js"></script>
+  </body>
+</html>

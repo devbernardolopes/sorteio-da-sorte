@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sorteio da Sorte | Criar Rifa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <div id="header-slot"></div>
+
+      <main class="grid" style="margin-top: 1rem">
+        <section class="card">
+          <h1 class="page-title">Criar nova rifa</h1>
+          <p class="muted">Defina regras, premio e dados PIX que receberao os pagamentos.</p>
+        </section>
+
+        <section class="card">
+          <div id="form-message" class="alert alert-error" hidden></div>
+          <form id="create-form" class="grid">
+            <label>
+              Titulo
+              <input class="input" name="title" required maxlength="120" />
+            </label>
+            <label>
+              Descricao
+              <textarea class="textarea" name="description" rows="4" required></textarea>
+            </label>
+
+            <div class="grid grid-2">
+              <label>
+                Data do sorteio
+                <input class="input" type="datetime-local" name="draw_date" required />
+              </label>
+              <label>
+                Tickets totais
+                <input class="input" type="number" name="total_tickets" min="1" required />
+              </label>
+              <label>
+                Maximo por usuario
+                <input class="input" type="number" name="max_tickets_per_user" min="1" required />
+              </label>
+              <label>
+                Valor por ticket (R$)
+                <input class="input" type="number" name="ticket_price" min="0.5" step="0.01" required />
+              </label>
+              <label>
+                Tempo de reserva (min)
+                <input class="input" type="number" name="hold_minutes" min="2" max="120" value="15" required />
+              </label>
+            </div>
+
+            <div class="grid grid-2">
+              <label>
+                Nome completo (PIX)
+                <input class="input" name="pix_full_name" required maxlength="80" />
+              </label>
+              <label>
+                Tipo de chave PIX
+                <select class="select" name="pix_key_kind" required>
+                  <option value="cpf">CPF</option>
+                  <option value="cnpj">CNPJ</option>
+                  <option value="email">E-mail</option>
+                  <option value="phone">Telefone</option>
+                  <option value="random">Aleatoria</option>
+                </select>
+              </label>
+            </div>
+
+            <label>
+              Chave PIX
+              <input class="input" name="pix_key" required />
+            </label>
+
+            <button class="btn btn-primary" type="submit">Salvar rifa</button>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="/scripts/create-raffle.js"></script>
+  </body>
+</html>
