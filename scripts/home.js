@@ -1,9 +1,18 @@
-import { bindAuthButton, renderHeader, apiFetch, formatMoney, formatDate, showMessage } from "/app.js";
+import {
+  bindAuthButton,
+  renderHeader,
+  apiFetch,
+  formatMoney,
+  formatDate,
+  showMessage,
+  loadingMarkup,
+} from "/app.js";
 
 renderHeader({ active: "home" });
 await bindAuthButton();
 
 const listEl = document.getElementById("raffle-list");
+listEl.innerHTML = loadingMarkup("Carregando rifas...");
 
 try {
   const data = await apiFetch("/api/raffles/list");

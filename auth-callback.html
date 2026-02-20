@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autenticando...</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="site-shell" style="max-width:520px;padding-top:2.5rem">
+      <section class="card" style="text-align:center">
+        <h1 class="page-title" style="font-size:1.1rem">Autenticando</h1>
+        <p class="muted" id="auth-status">Finalizando login com Google...</p>
+        <div style="display:flex;justify-content:center;margin-top:0.8rem">
+          <div class="loading-inline"><span class="spinner"></span><span>Aguarde</span></div>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/scripts/auth-callback.js"></script>
+  </body>
+</html>

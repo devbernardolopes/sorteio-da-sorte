@@ -8,6 +8,8 @@ import {
   getUser,
   signInWithGoogle,
   showMessage,
+  loadingMarkup,
+  toast,
 } from "/app.js";
 
 renderHeader({ active: "home" });
@@ -21,9 +23,14 @@ if (!raffleId) {
 
 const form = document.getElementById("reserve-form");
 const quantityInput = form.elements.quantity;
+const submitBtn = form.querySelector('button[type="submit"]');
+const initialSubmitText = submitBtn.textContent;
+submitBtn.disabled = true;
+submitBtn.innerHTML = loadingMarkup("Carregando...");
 let raffle;
 
 try {
+  document.getElementById("raffle-description").innerHTML = loadingMarkup("Carregando rifa...");
   const result = await apiFetch(`/api/raffles/get?id=${raffleId}`);
   raffle = result.raffle;
 
@@ -36,15 +43,31 @@ try {
 
   quantityInput.max = Math.min(raffle.max_tickets_per_user, raffle.available_count);
   quantityInput.value = Math.min(1, Number(quantityInput.max));
+  submitBtn.disabled = false;
+  submitBtn.textContent = initialSubmitText;
 } catch (error) {
   showMessage("raffle-message", error.message);
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Indisponivel";
 }
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
+  const previousText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = loadingMarkup("Reservando...");
 
-  if (!(await getUser())) {
-    await signInWithGoogle();
+  try {
+    if (!(await getUser())) {
+      await signInWithGoogle();
+      if (!(await getUser())) {
+        throw new Error("Login nao concluido.");
+      }
+    }
+  } catch (error) {
+    toast(error.message, "error");
+    submitBtn.disabled = false;
+    submitBtn.textContent = previousText;
     return;
   }
 
@@ -58,5 +81,7 @@ form.addEventListener("submit", async (event) => {
     window.location.href = `/checkout.html?reservationId=${result.reservationId}`;
   } catch (error) {
     showMessage("raffle-message", error.message);
+    submitBtn.disabled = false;
+    submitBtn.textContent = previousText;
   }
 });

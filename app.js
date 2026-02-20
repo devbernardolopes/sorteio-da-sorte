@@ -3,6 +3,7 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 let cachedClient;
 let cachedSession;
 const PUBLIC_CONFIG_CACHE_KEY = "sorteio_public_config_v1";
+const AUTH_POPUP_NAME = "sorteio-auth-popup";
 
 async function getPublicConfig() {
   const cached = sessionStorage.getItem(PUBLIC_CONFIG_CACHE_KEY);
@@ -45,14 +46,70 @@ export async function getUser() {
 
 export async function signInWithGoogle() {
   const supabase = await getSupabaseClient();
-  const { error } = await supabase.auth.signInWithOAuth({
+  const redirectTo = `${window.location.origin}/auth-callback.html`;
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: window.location.href,
+      redirectTo,
+      skipBrowserRedirect: true,
       queryParams: { access_type: "offline", prompt: "consent" },
     },
   });
   if (error) throw error;
+
+  if (!data?.url) {
+    throw new Error("Nao foi possivel iniciar autenticacao Google.");
+  }
+
+  const width = 520;
+  const height = 720;
+  const left = Math.max(0, Math.round(window.screenX + (window.outerWidth - width) / 2));
+  const top = Math.max(0, Math.round(window.screenY + (window.outerHeight - height) / 2));
+  const popup = window.open(
+    data.url,
+    AUTH_POPUP_NAME,
+    `popup=yes,width=${width},height=${height},left=${left},top=${top}`,
+  );
+
+  if (!popup) {
+    throw new Error("Popup bloqueado. Permita popups para entrar com Google.");
+  }
+  popup.focus();
+
+  await new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error("Tempo esgotado na autenticacao."));
+    }, 120000);
+
+    const closeWatcher = setInterval(() => {
+      if (popup.closed) {
+        cleanup();
+        reject(new Error("Login cancelado."));
+      }
+    }, 400);
+
+    const onMessage = async (event) => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type === "supabase-auth-success") {
+        cleanup();
+        await getSession();
+        window.focus();
+        resolve();
+      } else if (event.data?.type === "supabase-auth-error") {
+        cleanup();
+        reject(new Error(event.data.message || "Falha na autenticacao."));
+      }
+    };
+
+    function cleanup() {
+      clearTimeout(timeout);
+      clearInterval(closeWatcher);
+      window.removeEventListener("message", onMessage);
+    }
+
+    window.addEventListener("message", onMessage);
+  });
 }
 
 export async function signOut() {
@@ -132,7 +189,7 @@ export function renderHeader({ active = "home", containerId = "header-slot" } = 
     const className = active === link.key ? "btn btn-primary" : "btn btn-outline";
     nav.insertAdjacentHTML(
       "beforeend",
-      `<a class="${className}" href="${link.href}">${link.label}</a>`,
+      `<a class="${className}" id="nav-${link.key}" href="${link.href}">${link.label}</a>`,
     );
   });
 
@@ -141,25 +198,58 @@ export function renderHeader({ active = "home", containerId = "header-slot" } = 
 
 export async function bindAuthButton({ requireAuth = false } = {}) {
   const authBtn = document.getElementById("auth-btn");
+  const joinedNav = document.getElementById("nav-joined");
+  const createdNav = document.getElementById("nav-created");
   if (!authBtn) return;
 
-  // Show neutral loading state to avoid green/red flicker on navigation.
   authBtn.className = "btn btn-outline";
   authBtn.textContent = "Carregando...";
   authBtn.disabled = true;
 
+  const setPrivateNavEnabled = (enabled) => {
+    [joinedNav, createdNav].forEach((el) => {
+      if (!el) return;
+      el.classList.toggle("btn-disabled", !enabled);
+      el.setAttribute("aria-disabled", String(!enabled));
+      el.tabIndex = enabled ? 0 : -1;
+      if (!enabled) {
+        el.onclick = (event) => event.preventDefault();
+      } else {
+        el.onclick = null;
+      }
+    });
+  };
+
   const applyLoggedOut = () => {
+    setPrivateNavEnabled(false);
     authBtn.disabled = false;
     authBtn.className = "btn btn-primary";
     authBtn.textContent = "Entrar com Google";
+  };
+
+  const applyLoggedIn = (user) => {
+    setPrivateNavEnabled(true);
+    authBtn.disabled = false;
+    const name = user.user_metadata?.full_name || user.email || "Conta";
+    authBtn.className = "btn btn-danger";
+    authBtn.textContent = `Sair (${name.split(" ")[0]})`;
+    authBtn.onclick = async () => {
+      try {
+        await signOut();
+      } catch (error) {
+        toast(error.message, "error");
+      }
+    };
   };
 
   applyLoggedOut();
   authBtn.onclick = async () => {
     try {
       await signInWithGoogle();
+      const user = await getUser();
+      if (user) applyLoggedIn(user);
     } catch (error) {
-      alert(error.message);
+      toast(error.message, "error");
     }
   };
 
@@ -173,23 +263,19 @@ export async function bindAuthButton({ requireAuth = false } = {}) {
   }
 
   if (user) {
-    authBtn.disabled = false;
-    const name = user.user_metadata?.full_name || user.email || "Conta";
-    authBtn.className = "btn btn-danger";
-    authBtn.textContent = `Sair (${name.split(" ")[0]})`;
-    authBtn.onclick = async () => {
-      try {
-        await signOut();
-      } catch (error) {
-        alert(error.message);
-      }
-    };
+    applyLoggedIn(user);
     return;
   }
 
   if (requireAuth) {
-    alert("Voce precisa entrar com Google para continuar.");
-    await signInWithGoogle();
+    toast("Voce precisa entrar com Google para continuar.", "error");
+    try {
+      await signInWithGoogle();
+      const refreshedUser = await getUser();
+      if (refreshedUser) applyLoggedIn(refreshedUser);
+    } catch (error) {
+      toast(error.message, "error");
+    }
   }
 }
 
@@ -209,4 +295,32 @@ export function hideMessage(containerId) {
   const el = document.getElementById(containerId);
   if (!el) return;
   el.hidden = true;
+}
+
+export function loadingMarkup(text = "Carregando...") {
+  return `<div class="loading-inline"><span class="spinner"></span><span>${text}</span></div>`;
+}
+
+function getToastRoot() {
+  let root = document.getElementById("toast-root");
+  if (!root) {
+    root = document.createElement("div");
+    root.id = "toast-root";
+    root.className = "toast-root";
+    document.body.appendChild(root);
+  }
+  return root;
+}
+
+export function toast(message, type = "info", timeoutMs = 3200) {
+  const root = getToastRoot();
+  const el = document.createElement("div");
+  el.className = `toast toast-${type}`;
+  el.textContent = message;
+  root.appendChild(el);
+
+  setTimeout(() => {
+    el.classList.add("toast-hide");
+    setTimeout(() => el.remove(), 180);
+  }, timeoutMs);
 }

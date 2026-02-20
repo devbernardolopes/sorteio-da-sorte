@@ -6,16 +6,13 @@ import {
   formatDate,
   getQueryParam,
   getUser,
-  signInWithGoogle,
   showMessage,
+  loadingMarkup,
+  toast,
 } from "/app.js";
 
 renderHeader({ active: "home" });
 await bindAuthButton();
-
-if (!(await getUser())) {
-  await signInWithGoogle();
-}
 
 const reservationId = getQueryParam("reservationId");
 if (!reservationId) {
@@ -26,22 +23,34 @@ if (!reservationId) {
 const generateBtn = document.getElementById("generate-pix");
 const copyBtn = document.getElementById("copy-btn");
 let currentPix = "";
+document.getElementById("pix-code").innerHTML = loadingMarkup("Carregando reserva...");
 
-try {
-  const data = await apiFetch(`/api/tickets/reservation?id=${reservationId}`);
-  const reservation = data.reservation;
-
-  document.getElementById("raffle-title").textContent = reservation.raffle_title;
-  document.getElementById("quantity").textContent = reservation.quantity;
-  document.getElementById("total").textContent = formatMoney(reservation.total_price);
-  document.getElementById("expires-at").textContent = formatDate(reservation.expires_at);
-  document.getElementById("ticket-numbers").textContent = reservation.ticket_numbers.join(", ");
-} catch (error) {
-  showMessage("checkout-message", error.message);
+if (!(await getUser())) {
+  showMessage("checkout-message", "Entre com Google para acessar o checkout.");
+  document.getElementById("pix-code").textContent = "Login necessario.";
   generateBtn.disabled = true;
 }
 
+if (!generateBtn.disabled) {
+  try {
+    const data = await apiFetch(`/api/tickets/reservation?id=${reservationId}`);
+    const reservation = data.reservation;
+
+    document.getElementById("raffle-title").textContent = reservation.raffle_title;
+    document.getElementById("quantity").textContent = reservation.quantity;
+    document.getElementById("total").textContent = formatMoney(reservation.total_price);
+    document.getElementById("expires-at").textContent = formatDate(reservation.expires_at);
+    document.getElementById("ticket-numbers").textContent = reservation.ticket_numbers.join(", ");
+  } catch (error) {
+    showMessage("checkout-message", error.message);
+    generateBtn.disabled = true;
+  }
+}
+
 generateBtn.addEventListener("click", async () => {
+  const previousText = generateBtn.textContent;
+  generateBtn.disabled = true;
+  generateBtn.innerHTML = loadingMarkup("Gerando PIX...");
   try {
     const data = await apiFetch("/api/generate-pix", {
       method: "POST",
@@ -59,13 +68,16 @@ generateBtn.addEventListener("click", async () => {
     });
 
     copyBtn.disabled = false;
+    generateBtn.textContent = "PIX gerado";
   } catch (error) {
     showMessage("checkout-message", error.message);
+    generateBtn.disabled = false;
+    generateBtn.textContent = previousText;
   }
 });
 
 copyBtn.addEventListener("click", async () => {
   if (!currentPix) return;
   await navigator.clipboard.writeText(currentPix);
-  alert("Codigo PIX copiado.");
+  toast("Codigo PIX copiado.", "success");
 });
